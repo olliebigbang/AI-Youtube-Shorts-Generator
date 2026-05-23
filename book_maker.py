@@ -54,11 +54,11 @@ COVER_DURATION = 3          # 封面静帧展示秒数（这段内无字幕，�
 USED_VIDEOS_PATH = Path("used_videos.json")
 
 VISUAL_MOOD_KEYWORDS = {
-    "urban_night": ["city night lights", "night cityscape", "urban night street"],
-    "rainy":       ["rain window night", "rainy city street", "rain drops dark"],
-    "sunny":       ["morning sunlight", "golden hour city", "sunrise motivation"],
-    "minimal":     ["minimal desk workspace", "clean office", "focused work space"],
-    "nature":      ["calm nature forest", "peaceful lake", "morning nature walk"],
+    "urban_night": ["city lights bokeh", "neon street night", "urban night glow"],
+    "rainy":       ["rain window light", "cafe rainy day", "cozy indoor rain"],
+    "sunny":       ["golden hour sunlight", "morning light window", "warm sunlight leaves"],
+    "minimal":     ["minimal white desk", "clean aesthetic room", "soft light interior"],
+    "nature":      ["forest sunlight ray", "peaceful garden morning", "green nature light"],
 }
 
 
