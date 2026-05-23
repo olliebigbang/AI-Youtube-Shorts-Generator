@@ -43,6 +43,7 @@ if not ANTHROPIC_API_KEY:
 
 PEXELS_API_KEY    = os.getenv("PEXELS_API_KEY")
 FREESOUND_API_KEY = os.getenv("FREESOUND_API_KEY")
+TTS_VOICE         = os.getenv("TTS_VOICE", "zh-CN-XiaoyiNeural")
 
 OUTPUT_DIR    = Path("output/book")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -550,7 +551,7 @@ async def _tts_generate(text: str, audio_path: str, srt_path: str, voice: str):
 
 
 def generate_tts_audio(text: str, audio_path: str, srt_path: str,
-                       voice: str = "zh-CN-XiaoxiaoNeural"):
+                       voice: str = "zh-CN-XiaoyiNeural"):
     log("🎙️ Edge TTS生成中文配音...")
     asyncio.run(_tts_generate(text, audio_path, srt_path, voice))
 
@@ -795,7 +796,7 @@ def run_book_mode(book_title: str) -> Path:
         # 4. TTS配音 + 字幕
         tts_path = os.path.join(tmp, "tts.mp3")
         srt_path = os.path.join(tmp, "subtitles.srt")
-        generate_tts_audio(script, tts_path, srt_path)
+        generate_tts_audio(script, tts_path, srt_path, voice=TTS_VOICE)
 
         # Fix 3：拆分超长字幕条目（edge-tts 中文常只生成 1 条）
         with open(srt_path, encoding="utf-8") as f:

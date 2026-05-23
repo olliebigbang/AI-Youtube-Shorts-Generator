@@ -43,6 +43,7 @@ if not ANTHROPIC_API_KEY:
 
 PEXELS_API_KEY    = os.getenv("PEXELS_API_KEY")
 FREESOUND_API_KEY = os.getenv("FREESOUND_API_KEY")
+TTS_VOICE         = os.getenv("TTS_VOICE", "zh-CN-XiaoyiNeural")
 
 # ── 配置 ──────────────────────────────────────────────
 NUM_CLIPS = 3          # 生成几个短视频
@@ -796,7 +797,7 @@ async def _tts_generate(text: str, audio_path: str, srt_path: str, voice: str):
 
 
 def generate_tts_audio(text: str, audio_path: str, srt_path: str,
-                        voice: str = "zh-CN-XiaoxiaoNeural"):
+                        voice: str = "zh-CN-XiaoyiNeural"):
     """生成Edge TTS中文配音和SRT字幕（保留原始时间戳，视觉换行在ASS阶段处理）"""
     log(f"🎙️ Edge TTS生成中文配音（{voice}）...")
     asyncio.run(_tts_generate(text, audio_path, srt_path, voice))
@@ -981,7 +982,7 @@ def _generate_one_video(whisper_segs: list, part_label: str, tmp_dir: str,
         print("   ℹ️ 未设置 FREESOUND_API_KEY，跳过背景音乐")
 
     # C. Edge TTS 配音 + 字幕
-    generate_tts_audio(chinese_script, tts_audio_path, srt_path)
+    generate_tts_audio(chinese_script, tts_audio_path, srt_path, voice=TTS_VOICE)
 
     # D. 混合 TTS + 背景音乐
     if music_ok:
