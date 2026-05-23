@@ -43,6 +43,7 @@ if not ANTHROPIC_API_KEY:
 
 PEXELS_API_KEY    = os.getenv("PEXELS_API_KEY")
 FREESOUND_API_KEY = os.getenv("FREESOUND_API_KEY")
+TTS_VOICE         = os.getenv("TTS_VOICE", "zh-CN-XiaoyiNeural")
 
 # ── 配置 ──────────────────────────────────────────────
 NUM_CLIPS = 3          # 生成几个短视频
@@ -55,11 +56,11 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 USED_VIDEOS_PATH = Path("used_videos.json")
 
 VISUAL_MOOD_KEYWORDS = {
-    "urban_night": ["city night lights", "night cityscape", "urban night street"],
-    "rainy":       ["rain window night", "rainy city street", "rain drops dark"],
-    "sunny":       ["morning sunlight", "golden hour city", "sunrise motivation"],
-    "minimal":     ["minimal desk workspace", "clean office", "focused work space"],
-    "nature":      ["calm nature forest", "peaceful lake", "morning nature walk"],
+    "urban_night": ["city lights bokeh", "neon street night", "urban night glow"],
+    "rainy":       ["rain window light", "cafe rainy day", "cozy indoor rain"],
+    "sunny":       ["golden hour sunlight", "morning light window", "warm sunlight leaves"],
+    "minimal":     ["minimal white desk", "clean aesthetic room", "soft light interior"],
+    "nature":      ["forest sunlight ray", "peaceful garden morning", "green nature light"],
 }
 # ──────────────────────────────────────────────────────
 
@@ -796,7 +797,7 @@ async def _tts_generate(text: str, audio_path: str, srt_path: str, voice: str):
 
 
 def generate_tts_audio(text: str, audio_path: str, srt_path: str,
-                        voice: str = "zh-CN-XiaoxiaoNeural"):
+                        voice: str = "zh-CN-XiaoyiNeural"):
     """生成Edge TTS中文配音和SRT字幕（保留原始时间戳，视觉换行在ASS阶段处理）"""
     log(f"🎙️ Edge TTS生成中文配音（{voice}）...")
     asyncio.run(_tts_generate(text, audio_path, srt_path, voice))
@@ -893,7 +894,7 @@ def build_faceless_video(audio_path: str, srt_path: str, output_path: str,
 
         if bg_video_path and bg_is_ready:
             # 已预处理好的拼接背景，只需叠遮罩+字幕+音频
-            vf = f"drawbox=x=0:y=0:w=iw:h=ih:color=black@0.45:t=fill,{sub_filter}"
+            vf = f"drawbox=x=0:y=0:w=iw:h=ih:color=black@0.25:t=fill,{sub_filter}"
             cmd = [
                 "ffmpeg", "-y",
                 "-i", bg_video_path,
@@ -981,7 +982,7 @@ def _generate_one_video(whisper_segs: list, part_label: str, tmp_dir: str,
         print("   ℹ️ 未设置 FREESOUND_API_KEY，跳过背景音乐")
 
     # C. Edge TTS 配音 + 字幕
-    generate_tts_audio(chinese_script, tts_audio_path, srt_path)
+    generate_tts_audio(chinese_script, tts_audio_path, srt_path, voice=TTS_VOICE)
 
     # D. 混合 TTS + 背景音乐
     if music_ok:

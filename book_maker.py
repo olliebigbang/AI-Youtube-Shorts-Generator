@@ -43,6 +43,7 @@ if not ANTHROPIC_API_KEY:
 
 PEXELS_API_KEY    = os.getenv("PEXELS_API_KEY")
 FREESOUND_API_KEY = os.getenv("FREESOUND_API_KEY")
+TTS_VOICE         = os.getenv("TTS_VOICE", "zh-CN-XiaoyiNeural")
 
 OUTPUT_DIR    = Path("output/book")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -53,11 +54,11 @@ COVER_DURATION = 3          # 封面静帧展示秒数（这段内无字幕，�
 USED_VIDEOS_PATH = Path("used_videos.json")
 
 VISUAL_MOOD_KEYWORDS = {
-    "urban_night": ["city night lights", "night cityscape", "urban night street"],
-    "rainy":       ["rain window night", "rainy city street", "rain drops dark"],
-    "sunny":       ["morning sunlight", "golden hour city", "sunrise motivation"],
-    "minimal":     ["minimal desk workspace", "clean office", "focused work space"],
-    "nature":      ["calm nature forest", "peaceful lake", "morning nature walk"],
+    "urban_night": ["city lights bokeh", "neon street night", "urban night glow"],
+    "rainy":       ["rain window light", "cafe rainy day", "cozy indoor rain"],
+    "sunny":       ["golden hour sunlight", "morning light window", "warm sunlight leaves"],
+    "minimal":     ["minimal white desk", "clean aesthetic room", "soft light interior"],
+    "nature":      ["forest sunlight ray", "peaceful garden morning", "green nature light"],
 }
 
 
@@ -550,7 +551,7 @@ async def _tts_generate(text: str, audio_path: str, srt_path: str, voice: str):
 
 
 def generate_tts_audio(text: str, audio_path: str, srt_path: str,
-                       voice: str = "zh-CN-XiaoxiaoNeural"):
+                       voice: str = "zh-CN-XiaoyiNeural"):
     log("🎙️ Edge TTS生成中文配音...")
     asyncio.run(_tts_generate(text, audio_path, srt_path, voice))
 
@@ -795,7 +796,7 @@ def run_book_mode(book_title: str) -> Path:
         # 4. TTS配音 + 字幕
         tts_path = os.path.join(tmp, "tts.mp3")
         srt_path = os.path.join(tmp, "subtitles.srt")
-        generate_tts_audio(script, tts_path, srt_path)
+        generate_tts_audio(script, tts_path, srt_path, voice=TTS_VOICE)
 
         # Fix 3：拆分超长字幕条目（edge-tts 中文常只生成 1 条）
         with open(srt_path, encoding="utf-8") as f:
