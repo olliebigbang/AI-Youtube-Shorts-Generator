@@ -1,49 +1,54 @@
 {
-  "_comment": "Wan2.1 T2V workflow for concept_maker.py - requires ComfyUI-WanVideoWrapper (kijai)",
-  "_setup": [
-    "1. 在ComfyUI UI里打开你的Wan2.1 T2V workflow",
-    "2. 按 Ctrl+Shift+S 导出为 API 格式",
-    "3. 用导出的JSON替换本文件内容（保留 _comment 和 _setup 注释行没关系）",
-    "4. 找到正向提示词字段，将其值改为字符串 __PROMPT__",
-    "5. 找到帧数字段（num_frames / length / frame_number 等），将其值改为数字 0 再手动改为字符串 __FRAMES__",
-    "   注意：JSON中数字字段要写成不带引号的 __FRAMES__，代码会替换为整数",
-    "模型文件名参考：",
-    "  - Wan2_1-T2V-14B_fp8_e4m3fn.safetensors",
-    "  - Wan2_1-T2V-1_3B_fp8_e4m3fn.safetensors (轻量版)"
-  ],
-  "1": {
-    "class_type": "DownloadAndLoadWanModel",
+  "_comment": "Wan2.1 T2V 14B GGUF workflow — uses UnetLoaderGGUF for Q4_K_M quantized model",
+  "79": {
+    "class_type": "UnetLoaderGGUF",
     "inputs": {
-      "model": "Wan2_1-T2V-14B_fp8_e4m3fn.safetensors",
-      "base_precision": "fp8_e4m3fn",
-      "quantization": "disabled",
-      "load_device": "main_device",
-      "attention_mode": "sdpa"
+      "unet_name": "wan2.1-t2v-14b-Q4_K_M.gguf"
     }
   },
-  "2": {
+  "56": {
+    "class_type": "WanVideoTeaCacheKJ",
+    "inputs": {
+      "model": ["79", 0],
+      "rel_l1_thresh": 0.08,
+      "start_percent": 0.1,
+      "end_percent": 1.0,
+      "cache_device": "offload_device",
+      "coefficients": "14B"
+    }
+  },
+  "57": {
+    "class_type": "WanVideoEnhanceAVideoKJ",
+    "inputs": {
+      "model": ["56", 0],
+      "latent": ["80", 0],
+      "weight": 1.0
+    }
+  },
+  "38": {
     "class_type": "CLIPLoader",
     "inputs": {
-      "clip_name": "umt5_xxl_fp8_e4m3fn.safetensors",
-      "type": "wan"
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "default"
     }
   },
-  "3": {
+  "6": {
     "class_type": "CLIPTextEncode",
     "inputs": {
-      "text": "__PROMPT__",
-      "clip": ["2", 0]
+      "clip": ["38", 0],
+      "text": "__PROMPT__"
     }
   },
-  "4": {
+  "7": {
     "class_type": "CLIPTextEncode",
     "inputs": {
-      "text": "text, watermark, logo, nsfw, blurry, low quality, static, frozen",
-      "clip": ["2", 0]
+      "clip": ["38", 0],
+      "text": "text, watermark, logo, nsfw, overexposure, static, blurred details, subtitles, worst quality, low quality, deformed, disfigured, multiple heads, extra limbs, bad anatomy, bad eyes, distorted eyes, asymmetrical eyes, cross-eyed, dead eyes, creepy smile, forced smile, unnatural smile, bad teeth, extra teeth, distorted mouth, deformed lips, uncanny face, plastic face, overly perfect face, doll face, bad anatomy, mutated hands, extra fingers"
     }
   },
-  "5": {
-    "class_type": "WanEmptyLatentVideo",
+  "80": {
+    "class_type": "EmptyHunyuanLatentVideo",
     "inputs": {
       "width": 480,
       "height": 832,
@@ -51,43 +56,42 @@
       "batch_size": 1
     }
   },
-  "6": {
+  "3": {
     "class_type": "KSampler",
     "inputs": {
-      "model": ["1", 0],
-      "positive": ["3", 0],
-      "negative": ["4", 0],
-      "latent_image": ["5", 0],
+      "model": ["57", 0],
+      "positive": ["6", 0],
+      "negative": ["7", 0],
+      "latent_image": ["80", 0],
       "seed": 0,
-      "steps": 20,
-      "cfg": 6.0,
-      "sampler_name": "euler",
-      "scheduler": "simple",
+      "steps": 28,
+      "cfg": 5.0,
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "sgm_uniform",
       "denoise": 1.0
     }
   },
-  "7": {
-    "class_type": "VAEDecodeTiled",
+  "39": {
+    "class_type": "VAELoader",
     "inputs": {
-      "samples": ["6", 0],
-      "vae": ["1", 2],
-      "tile_size": 272,
-      "overlap": 64,
-      "temporal_size": 64,
-      "temporal_overlap": 8
+      "vae_name": "Wan_2.1\\wan_2.1_vae.safetensors"
     }
   },
   "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["3", 0],
+      "vae": ["39", 0]
+    }
+  },
+  "55": {
     "class_type": "VHS_VideoCombine",
     "inputs": {
-      "images": ["7", 0],
+      "images": ["8", 0],
       "frame_rate": 24,
       "loop_count": 0,
       "filename_prefix": "concept_scene",
       "format": "video/h264-mp4",
-      "pix_fmt": "yuv420p",
-      "crf": 19,
-      "save_metadata": false,
       "pingpong": false,
       "save_output": true
     }
